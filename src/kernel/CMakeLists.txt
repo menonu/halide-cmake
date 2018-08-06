@@ -1,0 +1,36 @@
+cmake_minimum_required(VERSION 3.4)
+PROJECT(gen)
+
+SET(CMAKE_SYSTEM_NAME Linux)
+SET(CMAKE_C_COMPILER gcc)
+SET(CMAKE_CXX_COMPILER g++)
+SET(CMAKE_ASM_COMPILER gcc)
+SET(CMAKE_SYSTEM_PROCESSOR ${CMAKE_HOST_SYSTEM_PROCESSOR})
+
+find_library(HALIDE_LIB NAMES Halide)
+
+add_executable(${PROJECT_NAME} twice.cpp)
+
+SET(CMAKE_CXX_FLAGS -std=c++11)
+
+target_link_libraries(${PROJECT_NAME} ${HALIDE_LIB})
+
+add_custom_command(
+    OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/twice_generate.o"
+    OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/twice_generate.h"
+    COMMAND ./${PROJECT_NAME}
+    DEPENDS ${PROJECT_NAME}
+)
+
+add_library(halide_${PROJECT_NAME} STATIC ${CMAKE_CURRENT_BINARY_DIR}/twice_generate.o)
+
+
+SET_SOURCE_FILES_PROPERTIES(
+    ${CMAKE_CURRENT_BINARY_DIR}/twice_generate.o
+    PROPERTIES
+    EXTERNAL_OBJECT true
+    GENERATED true
+)
+
+SET_TARGET_PROPERTIES(halide_${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE C )
+
